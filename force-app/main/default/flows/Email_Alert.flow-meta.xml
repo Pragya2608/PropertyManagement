@@ -1,0 +1,257 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<Flow xmlns="http://soap.sforce.com/2006/04/metadata">
+    <actionCalls>
+        <name>Overdue_By_one_day</name>
+        <label>Overdue By 1 day</label>
+        <locationX>1766</locationX>
+        <locationY>432</locationY>
+        <actionName>Loan__c.Overdue_by_one_day</actionName>
+        <actionType>emailAlert</actionType>
+        <flowTransactionModel>CurrentTransaction</flowTransactionModel>
+        <inputParameters>
+            <name>SObjectRowId</name>
+            <value>
+                <elementReference>$Record.Id</elementReference>
+            </value>
+        </inputParameters>
+        <nameSegment>Loan__c.Overdue_by_one_day</nameSegment>
+        <versionSegment>1</versionSegment>
+    </actionCalls>
+    <actionCalls>
+        <name>Overdue_Email</name>
+        <label>Overdue date</label>
+        <locationX>1133</locationX>
+        <locationY>501</locationY>
+        <actionName>Loan__c.Overdue</actionName>
+        <actionType>emailAlert</actionType>
+        <flowTransactionModel>CurrentTransaction</flowTransactionModel>
+        <inputParameters>
+            <name>SObjectRowId</name>
+            <value>
+                <elementReference>$Record.Id</elementReference>
+            </value>
+        </inputParameters>
+        <nameSegment>Loan__c.Overdue</nameSegment>
+        <versionSegment>1</versionSegment>
+    </actionCalls>
+    <actionCalls>
+        <name>X24_hours_before</name>
+        <label>24 hours before</label>
+        <locationX>182</locationX>
+        <locationY>432</locationY>
+        <actionName>Loan__c.Email_For_the_24_hrs_before</actionName>
+        <actionType>emailAlert</actionType>
+        <flowTransactionModel>CurrentTransaction</flowTransactionModel>
+        <inputParameters>
+            <name>SObjectRowId</name>
+            <value>
+                <elementReference>$Record.Id</elementReference>
+            </value>
+        </inputParameters>
+        <nameSegment>Loan__c.Email_For_the_24_hrs_before</nameSegment>
+        <versionSegment>1</versionSegment>
+    </actionCalls>
+    <actionCalls>
+        <name>X5_days_before</name>
+        <label>5 days before</label>
+        <locationX>711</locationX>
+        <locationY>428</locationY>
+        <actionName>Loan__c.Loan_Amount_Pay_Reminder</actionName>
+        <actionType>emailAlert</actionType>
+        <flowTransactionModel>CurrentTransaction</flowTransactionModel>
+        <inputParameters>
+            <name>SObjectRowId</name>
+            <value>
+                <elementReference>$Record.Id</elementReference>
+            </value>
+        </inputParameters>
+        <nameSegment>Loan__c.Loan_Amount_Pay_Reminder</nameSegment>
+        <versionSegment>1</versionSegment>
+    </actionCalls>
+    <apiVersion>58.0</apiVersion>
+    <decisions>
+        <name>Decision_for_5_days</name>
+        <label>Decision for 5 days</label>
+        <locationX>578</locationX>
+        <locationY>324</locationY>
+        <defaultConnector>
+            <targetReference>X5_days_before</targetReference>
+        </defaultConnector>
+        <defaultConnectorLabel>Send Email</defaultConnectorLabel>
+        <rules>
+            <name>Send_Email_5days</name>
+            <conditionLogic>and</conditionLogic>
+            <conditions>
+                <leftValueReference>daysduefromCreatedDates</leftValueReference>
+                <operator>LessThan</operator>
+                <rightValue>
+                    <numberValue>5.0</numberValue>
+                </rightValue>
+            </conditions>
+            <label>Don&apos;t Send Email</label>
+        </rules>
+    </decisions>
+    <decisions>
+        <name>Decision_for_Overdue_end</name>
+        <label>Decision for Overdue end</label>
+        <locationX>1106</locationX>
+        <locationY>324</locationY>
+        <defaultConnector>
+            <targetReference>Overdue_Email</targetReference>
+        </defaultConnector>
+        <defaultConnectorLabel>Send Email</defaultConnectorLabel>
+        <rules>
+            <name>Overdue_end</name>
+            <conditionLogic>and</conditionLogic>
+            <conditions>
+                <leftValueReference>daysduefromCreatedDates</leftValueReference>
+                <operator>GreaterThan</operator>
+                <rightValue>
+                    <numberValue>0.0</numberValue>
+                </rightValue>
+            </conditions>
+            <label>Don&apos;t Send Email</label>
+        </rules>
+    </decisions>
+    <decisions>
+        <name>Send_Email</name>
+        <label>Send Email</label>
+        <locationX>50</locationX>
+        <locationY>324</locationY>
+        <defaultConnector>
+            <targetReference>X24_hours_before</targetReference>
+        </defaultConnector>
+        <defaultConnectorLabel>Send Email</defaultConnectorLabel>
+        <rules>
+            <name>Send_Emails</name>
+            <conditionLogic>and</conditionLogic>
+            <conditions>
+                <leftValueReference>daysduefromCreatedDates</leftValueReference>
+                <operator>LessThan</operator>
+                <rightValue>
+                    <numberValue>1.0</numberValue>
+                </rightValue>
+            </conditions>
+            <label>Don&apos;t Send Email</label>
+        </rules>
+    </decisions>
+    <decisions>
+        <name>Send_the_email_for_decision</name>
+        <label>Send the email for decision</label>
+        <locationX>1634</locationX>
+        <locationY>324</locationY>
+        <defaultConnector>
+            <targetReference>Overdue_By_one_day</targetReference>
+        </defaultConnector>
+        <defaultConnectorLabel>Send Mail</defaultConnectorLabel>
+        <rules>
+            <name>Don_t_send_email</name>
+            <conditionLogic>and</conditionLogic>
+            <conditions>
+                <leftValueReference>daysduefromCreatedDates</leftValueReference>
+                <operator>GreaterThan</operator>
+                <rightValue>
+                    <numberValue>1.0</numberValue>
+                </rightValue>
+            </conditions>
+            <label>Don&apos;t send email</label>
+        </rules>
+    </decisions>
+    <description>It is used to send email notification to customers regarding payment of loan</description>
+    <environments>Default</environments>
+    <formulas>
+        <name>daysduefromCreatedDates</name>
+        <dataType>Number</dataType>
+        <expression>DateValue({!$Record.Due_date__c}) - DateValue( {!$Record.CreatedDate})</expression>
+        <scale>0</scale>
+    </formulas>
+    <interviewLabel>Email Alert {!$Flow.CurrentDateTime}</interviewLabel>
+    <label>Email Alert</label>
+    <processMetadataValues>
+        <name>BuilderType</name>
+        <value>
+            <stringValue>LightningFlowBuilder</stringValue>
+        </value>
+    </processMetadataValues>
+    <processMetadataValues>
+        <name>CanvasMode</name>
+        <value>
+            <stringValue>FREE_FORM_CANVAS</stringValue>
+        </value>
+    </processMetadataValues>
+    <processMetadataValues>
+        <name>OriginBuilderType</name>
+        <value>
+            <stringValue>LightningFlowBuilder</stringValue>
+        </value>
+    </processMetadataValues>
+    <processType>AutoLaunchedFlow</processType>
+    <start>
+        <locationX>518</locationX>
+        <locationY>48</locationY>
+        <filterLogic>and</filterLogic>
+        <filters>
+            <field>Due_date__c</field>
+            <operator>IsNull</operator>
+            <value>
+                <booleanValue>false</booleanValue>
+            </value>
+        </filters>
+        <object>Loan__c</object>
+        <recordTriggerType>CreateAndUpdate</recordTriggerType>
+        <scheduledPaths>
+            <name>within_1_Day</name>
+            <connector>
+                <targetReference>Send_Email</targetReference>
+            </connector>
+            <label>within 1 Day</label>
+            <offsetNumber>-24</offsetNumber>
+            <offsetUnit>Hours</offsetUnit>
+            <recordField>Due_date__c</recordField>
+            <timeSource>RecordField</timeSource>
+        </scheduledPaths>
+        <scheduledPaths>
+            <name>within_5_Days</name>
+            <connector>
+                <targetReference>Decision_for_5_days</targetReference>
+            </connector>
+            <label>within 5 Days</label>
+            <offsetNumber>-120</offsetNumber>
+            <offsetUnit>Hours</offsetUnit>
+            <recordField>Due_date__c</recordField>
+            <timeSource>RecordField</timeSource>
+        </scheduledPaths>
+        <scheduledPaths>
+            <name>Overdue</name>
+            <connector>
+                <targetReference>Decision_for_Overdue_end</targetReference>
+            </connector>
+            <label>Overdue</label>
+            <offsetNumber>0</offsetNumber>
+            <offsetUnit>Hours</offsetUnit>
+            <recordField>Due_date__c</recordField>
+            <timeSource>RecordField</timeSource>
+        </scheduledPaths>
+        <scheduledPaths>
+            <name>Overdue_by_1_Day</name>
+            <connector>
+                <targetReference>Send_the_email_for_decision</targetReference>
+            </connector>
+            <label>Overdue by 1 Day</label>
+            <offsetNumber>24</offsetNumber>
+            <offsetUnit>Hours</offsetUnit>
+            <recordField>Due_date__c</recordField>
+            <timeSource>RecordField</timeSource>
+        </scheduledPaths>
+        <triggerType>RecordAfterSave</triggerType>
+    </start>
+    <status>Draft</status>
+    <variables>
+        <name>daysDueFromCreatedDate</name>
+        <dataType>Number</dataType>
+        <isCollection>false</isCollection>
+        <isInput>false</isInput>
+        <isOutput>false</isOutput>
+        <scale>0</scale>
+    </variables>
+</Flow>
